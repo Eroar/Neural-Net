@@ -9,37 +9,51 @@ def sigmoid(z):
     """
     return 1.0/(1.0 + numpy.exp(-z))
 
-def sigmoid_prime(z):
+def sigmoidPrime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
+def relu(z):
+    max(0, z)
+
+def reluPrime(z):
+    if z < 1:
+        return 1
+    else:
+        return 0
 
 class NeuralNet():
 
     def __init__(self, sizes):
-        self.num_layers = len(sizes)
+        self.numLayers = len(sizes)
         self.sizes = sizes
         self.biases = [numpy.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [numpy.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
-        for w in self.weights:
-            print("weight shape: ", w.shape)
+        self.weights = [numpy.random.randn(y,x) for x, y in zip(sizes[:-1], sizes[1:])]
+        # for w in self.weights:
+        #     print("weight shape: ", w.shape)
 
     def feedforward(self, a):
         """
         return the output of the network if "a" is input.
         """
+        lastLayerActivations = a
         #loops through the array of arrays weights and arrays of biases
-        for w, b in zip(self.biases, self.weights):
+        for b, w in zip(self.biases, self.weights):
             #calculates the output of an layer and stores it in a
             """
             calculates the dot product of weights of each neuron and activations of last layer
             and applies sigmoid function to it.
             Numpy applies sigmoid function automatically when the input is an array
             """
-            print("a len:", a.shape)
-            a = sigmoid(numpy.dot(w, a)+b)
-            print("a: ", a)
+            newActivations = numpy.zeros(b.shape)
+            #loop through every neuron in a layer
+            neuronIndex = 0
+            for neutronBias, neutronWeights in zip(b, w):
+                newActivations[neuronIndex] = sigmoid(numpy.dot(neutronWeights, lastLayerActivations) + neutronBias)
+                neuronIndex += 1
+            lastLayerActivations = numpy.copy(newActivations)
         #returns the last layer activations array
-        return a
+        return lastLayerActivations
     
     def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
         """
@@ -52,8 +66,6 @@ class NeuralNet():
         epoch, and partial progress printed out.  This is useful for
         tracking progress, but slows things down substantially.
         """
-        if test_data: 
-            n_test = len(test_data)
         n = len(training_data)
         for epoch_num in range(epochs):
             #shuffle the training data
@@ -65,6 +77,7 @@ class NeuralNet():
             for miniBatch in miniBatches:
                 self.update_mini_batch(miniBatch, eta)
             if test_data:
+                n_test = len(test_data)
                 print ("Epoch {0}: {1} / {2}".format(epoch_num, self.evaluate(test_data), n_test))
             else:
                 print ("Epoch {0} complete".format(epoch_num))
@@ -75,40 +88,46 @@ class NeuralNet():
         The "mini_batch" is a list of tuples "(x, y)", and "eta"
         is the learning rate."""
 
+        #prepares an array for needed changes to biases
         nabla_b = []
         for b in self.biases:
             nabla_b.append(numpy.zeros(b.shape))
 
+        #prepares an array for needed changes to weights
         nabla_w = []
         for w in self.weights:
             nabla_w.append(numpy.zeros(w.shape))
 
-        for x, y in mini_batch:
-            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
+        for image, label in mini_batch:
+            delta_nabla_b, delta_nabla_w = self.backprop(image, label)
             #adds nabla_b matrix to delta_nabla_b
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             #adds nabla_w matrix to delta_nabla_w
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-        self.weights = [w-(eta/len(mini_batch))*nw 
-                        for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b-(eta/len(mini_batch))*nb 
-                       for b, nb in zip(self.biases, nabla_b)]
+        
+        index = 0
+        for w, nw in zip(self.weights, nabla_w):
+            self.weights[index] = w - (eta/len(mini_batch))*nw
+            index += 1
+        
+        index = 0
+        for b, nb in zip(self.biases, nabla_b):
+            self.biases[index] = b - (eta/len(mini_batch))*nb
+            index += 1
     
     def backprop(self, x, y):
         """Return a tuple ``(nabla_b, nabla_w)`` representing the
         gradient for the cost function C_x.  ``nabla_b`` and
         ``nabla_w`` are layer-by-layer lists of numpy arrays, similar
         to ``self.biases`` and ``self.weights``."""
-        #creates an array of zeros
+
         nabla_b = []
         for b in self.biases:
             nabla_b.append(numpy.zeros(b.shape))
-
-        #creates an array of zeros
+        
         nabla_w = []
         for w in self.weights:
             nabla_w.append(numpy.zeros(w.shape))
-
         # feedforward
         activation = x
         activations = [x] # list to store all the activations, layer by layer
@@ -119,7 +138,7 @@ class NeuralNet():
             activation = sigmoid(z)
             activations.append(activation)
         # backward pass
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        delta = self.cost_derivative(activations[-1], y) * sigmoidPrime(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
@@ -128,9 +147,9 @@ class NeuralNet():
         # second-last layer, and so on.  It's a renumbering of the
         # scheme in the book, used here to take advantage of the fact
         # that Python can use negative indices in lists.
-        for l in range(2, self.num_layers):
+        for l in range(2, self.numLayers):
             z = zs[-l]
-            sp = sigmoid_prime(z)
+            sp = sigmoidPrime(z)
             delta = numpy.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = numpy.dot(delta, activations[-l-1].transpose())
@@ -144,7 +163,7 @@ class NeuralNet():
         test_results = []
         for (x, y) in test_data:
             print("x:",len(x))
-            test_results.append((numpy.argmax(self.feedforward(x)), y))
+            test_results.append(self.feedforward(x), y)
 
         correctCount = 0
         for (x,y) in test_results:
