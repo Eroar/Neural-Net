@@ -24,13 +24,22 @@ def reluPrime(z):
 
 class NeuralNet():
 
-    def __init__(self, sizes):
+    def __init__(self, sizes, seed="No seed"):
         self.numLayers = len(sizes)
         self.sizes = sizes
-        self.biases = [numpy.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [numpy.random.randn(y,x) for x, y in zip(sizes[:-1], sizes[1:])]
-        # for w in self.weights:
-        #     print("weight shape: ", w.shape)
+        if seed != "No seed":
+            print("Settings seed")
+            numpy.random.seed(seed)
+            random.seed(seed)
+
+        self.biases = []
+        for neuronsInLayerNum in sizes[1:]:
+            self.biases.append(numpy.random.randn(neuronsInLayerNum, 1))
+
+        self.weights = []
+        for neuronsInLayerNum, neuronsInPrevLayer in zip(sizes[1:], sizes[:-1]):
+            self.weights.append(numpy.random.randn(neuronsInLayerNum, neuronsInPrevLayer))
+        
 
     def feedforward(self, a):
         """
@@ -129,18 +138,33 @@ class NeuralNet():
         for w in self.weights:
             nabla_w.append(numpy.zeros(w.shape))
         # feedforward
-        activation = x
-        activations = [x] # list to store all the activations, layer by layer
+        activation = numpy.array(x).reshape(-1,1)
+        activations = [activation] # list to store all the activations, layer by layer
         zs = [] # list to store all the z vectors, layer by layer
-        for b, w in zip(self.biases, self.weights):
-            z = numpy.dot(w, activation) + b
-            zs.append(z)
-            activation = sigmoid(z)
+        #loop through every neuron in a layer
+        
+        for layer in range(0, len(self.biases)):
+            layerZs = []
+            layerActivations = []
+            #loops through every neuron in the layer
+            index = 0
+            for neuronBias, neuronWeights in zip(self.biases[layer], self.weights[layer]):
+                index += 1
+                z = numpy.dot(activation.transpose(), neuronWeights) + neuronBias.transpose()
+                layerZs.append(z)
+                neuronActivation = sigmoid(z)
+                layerActivations.append(neuronActivation)
+
+            zs.append(numpy.array(layerZs))
+            activation = numpy.array(layerActivations)
             activations.append(activation)
+
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * sigmoidPrime(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
+        activationsTransposed = activations[-2].transpose()
+
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
         # l = 1 means the last layer of neurons, l = 2 is the
@@ -150,7 +174,7 @@ class NeuralNet():
         for l in range(2, self.numLayers):
             z = zs[-l]
             sp = sigmoidPrime(z)
-            delta = numpy.dot(self.weights[-l+1].transpose(), delta) * sp
+            delta = numpy.dot(self.weights[-l+1].transpose(), delta)
             nabla_b[-l] = delta
             nabla_w[-l] = numpy.dot(delta, activations[-l-1].transpose())
         return (nabla_b, nabla_w)
@@ -162,8 +186,7 @@ class NeuralNet():
         neuron in the final layer has the highest activation."""
         test_results = []
         for (x, y) in test_data:
-            print("x:",len(x))
-            test_results.append(self.feedforward(x), y)
+            test_results.append((numpy.argmax(self.feedforward(x)), numpy.argmax(y)))
 
         correctCount = 0
         for (x,y) in test_results:
