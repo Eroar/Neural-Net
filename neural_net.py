@@ -24,11 +24,13 @@ def reluPrime(z):
 
 class NeuralNet():
 
-    def __init__(self, sizes, seed="No seed"):
+    def __init__(self, sizes, seed="No seed", debug=False):
+        self.debug = debug
         self.numLayers = len(sizes)
         self.sizes = sizes
         if seed != "No seed":
-            print("Settings seed")
+            if self.debug:
+                print("Setting seed")
             numpy.random.seed(seed)
             random.seed(seed)
 
@@ -87,9 +89,11 @@ class NeuralNet():
                 self.update_mini_batch(miniBatch, eta)
             if test_data:
                 n_test = len(test_data)
-                print ("Epoch {0}: {1} / {2}".format(epoch_num, self.evaluate(test_data), n_test))
+                if self.debug:
+                    print("Epoch {0}: {1} / {2}".format(epoch_num, self.evaluate(test_data), n_test))
             else:
-                print ("Epoch {0} complete".format(epoch_num))
+                if self.debug:
+                    print("Epoch {0} complete".format(epoch_num))
 
     def update_mini_batch(self, mini_batch, eta):
         """Update the network's weights and biases by applying
