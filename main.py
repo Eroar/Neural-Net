@@ -16,9 +16,10 @@ print("loading_done")
 # net.SGD(trainingData, 30, 10, 0.1, test_data=testData)
 
 
-learningRates = [0.005, 0.008, 0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
+learningRates = [0.01, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
+activationFunc = "sigmoid" #"relu" or "sigmoid"
 seed = 0
 results = []
 
@@ -29,15 +30,15 @@ def getResultsJson():
             # print(resultsDict)
     except:
         # print("No Results.json file found, creating a new one")
-        resultsDict = {}
+        resultsDict = {"relu": {}, "sigmoid": {}}
     return resultsDict
 
-def addResults2Json(sizes, eta, results):
+def addResults2Json(sizes, eta, results, activationFunc):
     resultsDict = getResultsJson()
     try:
-        resultsDict[str(sizes)][str(eta)] = results
+        resultsDict[str(activationFunc)][str(sizes)][str(eta)] = results
     except KeyError:
-        resultsDict[str(sizes)] = {str(eta) : results}
+        resultsDict[str(activationFunc)][str(sizes)] = {str(eta) : results}
     
     with open("results.json", "w") as f:
         json.dump(resultsDict, f, indent=4)
@@ -46,7 +47,7 @@ def performForLearningRate(eta):
     epochsPerformance = []
     
     print("Starting to train, eta:", eta)
-    net = neural_net.NeuralNet(nnSizes, seed=seed)
+    net = neural_net.NeuralNet(nnSizes, seed=seed, debug=False, activationFunc=activationFunc)
     for epoch in range(numOfEpochs2Calc):
         net.SGD(trainingData, 1, 10, eta)
         performance = net.evaluate(testData)
@@ -57,13 +58,23 @@ def performForLearningRate(eta):
 
     return epochsPerformance
 
+def getEtasToCalculate():
+    try:
+        calculatedEtasStrings = list(getResultsJson()[str(activationFunc)][str(nnSizes)].keys())
+    except KeyError:
+        calculatedEtasStrings = []
+
+    calculatedLearningRates = set(map(float, calculatedEtasStrings))
+    toCalculate = [eta for eta in learningRates if eta not in calculatedLearningRates]
+    return toCalculate
+
 if __name__=="__main__":
     pool = multiprocessing.Pool()
 
-    calculatedLearningRates = set(map(float, getResultsJson()[str(nnSizes)].keys()))
-    toCalculate = [eta for eta in learningRates if eta not in calculatedLearningRates]
+    toCalculate = getEtasToCalculate()
+    print("Learning rates to calculate:", toCalculate)
 
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
-    
-    for i in range(len(learningRates)):
-        addResults2Json(nnSizes, learningRates[i], learningRatesResults[i])
+
+    for i in range(len(toCalculate)):
+        addResults2Json(nnSizes, toCalculate[i], learningRatesResults[i], activationFunc)

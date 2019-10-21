@@ -14,17 +14,21 @@ def sigmoidPrime(z):
     return sigmoid(z)*(1-sigmoid(z))
 
 def relu(z):
-    max(0, z)
+    return max(0, z)
 
 def reluPrime(z):
-    if z < 1:
-        return 1
-    else:
-        return 0
+    l=[]
+    print("Z:", z)
+    for value in z:
+        if value < 1:
+            l.append(1.0)
+        else:
+            l.append(0.0)
+    return l
 
 class NeuralNet():
 
-    def __init__(self, sizes, seed="No seed", debug=False):
+    def __init__(self, sizes, seed="No seed", debug=False, activationFunc="sigmoid"):
         self.debug = debug
         self.numLayers = len(sizes)
         self.sizes = sizes
@@ -42,6 +46,13 @@ class NeuralNet():
         for neuronsInLayerNum, neuronsInPrevLayer in zip(sizes[1:], sizes[:-1]):
             self.weights.append(numpy.random.randn(neuronsInLayerNum, neuronsInPrevLayer))
         
+        if activationFunc=="sigmoid":
+            self.activationFunc = sigmoid
+            self.activationFuncDerivative = sigmoidPrime
+
+        elif activationFunc=="relu":
+            self.activationFunc = relu
+            self.activationFuncDerivative = reluPrime
 
     def feedforward(self, a):
         """
@@ -60,7 +71,7 @@ class NeuralNet():
             #loop through every neuron in a layer
             neuronIndex = 0
             for neutronBias, neutronWeights in zip(b, w):
-                newActivations[neuronIndex] = sigmoid(numpy.dot(neutronWeights, lastLayerActivations) + neutronBias)
+                newActivations[neuronIndex] = self.activationFunc(numpy.dot(neutronWeights, lastLayerActivations) + neutronBias)
                 neuronIndex += 1
             lastLayerActivations = numpy.copy(newActivations)
         #returns the last layer activations array
@@ -156,7 +167,7 @@ class NeuralNet():
                 index += 1
                 z = numpy.dot(activation.transpose(), neuronWeights) + neuronBias.transpose()
                 layerZs.append(z)
-                neuronActivation = sigmoid(z)
+                neuronActivation = self.activationFunc(z)
                 layerActivations.append(neuronActivation)
 
             zs.append(numpy.array(layerZs))
@@ -164,7 +175,7 @@ class NeuralNet():
             activations.append(activation)
 
         # backward pass
-        delta = self.cost_derivative(activations[-1], y) * sigmoidPrime(zs[-1])
+        delta = self.cost_derivative(activations[-1], y) * self.activationFuncDerivative(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
         activationsTransposed = activations[-2].transpose()
@@ -177,8 +188,8 @@ class NeuralNet():
         # that Python can use negative indices in lists.
         for l in range(2, self.numLayers):
             z = zs[-l]
-            sp = sigmoidPrime(z)
-            delta = numpy.dot(self.weights[-l+1].transpose(), delta)
+            sp = self.activationFuncDerivative(z)
+            delta = numpy.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = numpy.dot(delta, activations[-l-1].transpose())
         return (nabla_b, nabla_w)
