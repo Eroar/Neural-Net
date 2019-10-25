@@ -14,17 +14,23 @@ def sigmoidPrime(z):
     return sigmoid(z)*(1-sigmoid(z))
 
 def relu(z):
-    return max(0, z)
+    return numpy.maximum(0.01*z, z)
 
 def reluPrime(z):
-    l=[]
-    print("Z:", z)
-    for value in z:
-        if value < 1:
-            l.append(1.0)
-        else:
-            l.append(0.0)
-    return l
+    return numpy.where(z > 0, 1.0, 0.01)
+    # l = numpy.zeros(z.shape)
+    # print("Z shape:", z.shape)
+    # print("Z:", z)
+    # for valueIndex in range(len(z)):
+    #     value = z[valueIndex][0]
+    #     if value < 1:
+    #         l[valueIndex] = [1.0]
+    #     else:
+    #         l[valueIndex] = [0.0]
+
+    # print("L shape:", l.shape)
+    # print("L:", l)
+    # return l
 
 class NeuralNet():
 
@@ -124,9 +130,9 @@ class NeuralNet():
 
         for image, label in mini_batch:
             delta_nabla_b, delta_nabla_w = self.backprop(image, label)
-            #adds nabla_b matrix to delta_nabla_b
+            #adds delta_nabla_b matrix to nabla_b
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-            #adds nabla_w matrix to delta_nabla_w
+            #adds delta_nabla_w matrix to nabla_w
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         
         index = 0
@@ -156,15 +162,14 @@ class NeuralNet():
         activation = numpy.array(x).reshape(-1,1)
         activations = [activation] # list to store all the activations, layer by layer
         zs = [] # list to store all the z vectors, layer by layer
-        #loop through every neuron in a layer
         
+        #loop through every layer in network
         for layer in range(0, len(self.biases)):
             layerZs = []
             layerActivations = []
+
             #loops through every neuron in the layer
-            index = 0
             for neuronBias, neuronWeights in zip(self.biases[layer], self.weights[layer]):
-                index += 1
                 z = numpy.dot(activation.transpose(), neuronWeights) + neuronBias.transpose()
                 layerZs.append(z)
                 neuronActivation = self.activationFunc(z)
@@ -178,18 +183,14 @@ class NeuralNet():
         delta = self.cost_derivative(activations[-1], y) * self.activationFuncDerivative(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
-        activationsTransposed = activations[-2].transpose()
 
-        # Note that the variable l in the loop below is used a little
-        # differently to the notation in Chapter 2 of the book.  Here,
+
         # l = 1 means the last layer of neurons, l = 2 is the
-        # second-last layer, and so on.  It's a renumbering of the
-        # scheme in the book, used here to take advantage of the fact
-        # that Python can use negative indices in lists.
+        # second-last layer, and so on.
         for l in range(2, self.numLayers):
             z = zs[-l]
-            sp = self.activationFuncDerivative(z)
-            delta = numpy.dot(self.weights[-l+1].transpose(), delta) * sp
+            activationFunctionDerivativeOfZ = self.activationFuncDerivative(z)
+            delta = numpy.dot(self.weights[-l+1].transpose(), delta) * activationFunctionDerivativeOfZ
             nabla_b[-l] = delta
             nabla_w[-l] = numpy.dot(delta, activations[-l-1].transpose())
         return (nabla_b, nabla_w)

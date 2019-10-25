@@ -16,10 +16,10 @@ print("loading_done")
 # net.SGD(trainingData, 30, 10, 0.1, test_data=testData)
 
 
-learningRates = [0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
+learningRates = [1, 2, 3, 5]#[0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
-activationFunc = "sigmoid" #"relu" or "sigmoid"
+activationFunc = "relu" #"relu" or "sigmoid"
 seed = 0
 results = []
 
@@ -73,6 +73,9 @@ if __name__=="__main__":
 
     toCalculate = getEtasToCalculate()
     print("Learning rates to calculate:", toCalculate)
+
+    #test
+    # performForLearningRate(toCalculate[0])
 
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
 
