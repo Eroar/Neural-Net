@@ -13,7 +13,7 @@ def getResultsJson():
 
 if __name__=="__main__":
     resultsDict = getResultsJson()
-    learningRatesDicts = resultsDict["[784, 30, 10]"]
+    learningRatesDicts = resultsDict["sigmoid"]["[784, 30, 10]"]
     etas = learningRatesDicts.keys()
     listOfScores = learningRatesDicts.values()
 
