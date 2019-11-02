@@ -21,6 +21,8 @@ numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
 activationFunc = "relu" #"relu" or "sigmoid"
 seed = 0
+poolSize = 3
+
 results = []
 
 def getResultsJson():
@@ -69,7 +71,7 @@ def getEtasToCalculate():
     return toCalculate
 
 if __name__=="__main__":
-    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool(poolSize)
 
     toCalculate = getEtasToCalculate()
     print("Learning rates to calculate:", toCalculate)
