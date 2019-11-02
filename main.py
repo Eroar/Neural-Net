@@ -106,15 +106,19 @@ def getEtasToCalculate(ignoreCalculated):
     return toCalculate
 
 if __name__=="__main__":
-    pool = multiprocessing.Pool(poolSize)
     print("Activation function:", activationFunc)    
+    if poolSize:
+        pool = multiprocessing.Pool(poolSize)
+    else:
+        pool = multiprocessing.Pool()
+
     toCalculate = getEtasToCalculate(ignoreCalculated)
     print("Learning rates to compute:", toCalculate)
     print("Number of rates to compute", len(toCalculate))
 
     #test
     # performForLearningRate(0.0000008)
-
+    performForLearningRate(toCalculate[0])
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
 
     for i in range(len(toCalculate)):
