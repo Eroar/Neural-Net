@@ -17,7 +17,8 @@ print("loading_done")
 
 
 # learningRates = [10, 2, 3, 5]#[0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
-learningRates = [0.00000001, 0.00000005, 0.00000012]#relu
+learningRates = [0.1 ,1, 2, 5, 12]#relu
+learningRates = list(map(lambda x: x*(10**-8), learningRates))
 
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
