@@ -14,23 +14,10 @@ def sigmoidPrime(z):
     return sigmoid(z)*(1-sigmoid(z))
 
 def relu(z):
-    return numpy.maximum(0.01*z, z)
+    return numpy.where(z > 0, z, 0.01*z)
 
 def reluPrime(z):
     return numpy.where(z > 0, 1.0, 0.01)
-    # l = numpy.zeros(z.shape)
-    # print("Z shape:", z.shape)
-    # print("Z:", z)
-    # for valueIndex in range(len(z)):
-    #     value = z[valueIndex][0]
-    #     if value < 1:
-    #         l[valueIndex] = [1.0]
-    #     else:
-    #         l[valueIndex] = [0.0]
-
-    # print("L shape:", l.shape)
-    # print("L:", l)
-    # return l
 
 class NeuralNet():
 
@@ -51,7 +38,7 @@ class NeuralNet():
         self.weights = []
         for neuronsInLayerNum, neuronsInPrevLayer in zip(sizes[1:], sizes[:-1]):
             self.weights.append(numpy.random.randn(neuronsInLayerNum, neuronsInPrevLayer))
-        
+
         if activationFunc=="sigmoid":
             self.activationFunc = sigmoid
             self.activationFuncDerivative = sigmoidPrime
@@ -159,7 +146,7 @@ class NeuralNet():
         for w in self.weights:
             nabla_w.append(numpy.zeros(w.shape))
         # feedforward
-        activation = numpy.array(x).reshape(-1,1)
+        activation = numpy.array(x).reshape(-1, 1)
         activations = [activation] # list to store all the activations, layer by layer
         zs = [] # list to store all the z vectors, layer by layer
         
@@ -183,7 +170,6 @@ class NeuralNet():
         delta = self.cost_derivative(activations[-1], y) * self.activationFuncDerivative(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
-
 
         # l = 1 means the last layer of neurons, l = 2 is the
         # second-last layer, and so on.
