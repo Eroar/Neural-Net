@@ -5,6 +5,7 @@ import numpy
 #for research
 import json
 import multiprocessing
+import os
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -16,16 +17,17 @@ print("loading_done")
 # net.SGD(trainingData, 30, 10, 0.1, test_data=testData)
 
 
-# learningRates = [10, 2, 3, 5]#[0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
-learningRates = [0.1 ,1, 2, 5, 12]#relu
-learningRates = list(map(lambda x: x*(10**-8), learningRates))
+# learningRates = [0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10] #sigmoid
+learningRates = [1e-07, 1e-08, 1e-09, 1e-10, 1e-11,]#relu
+# learningRates = list(map(lambda x: x*(10**-18), learningRates))
 
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
 activationFunc = "relu" #"relu" or "sigmoid"
 seed = 0
-poolSize = 3
+poolSize = None
 debug = True
+ignoreCalculated = False
 
 results = []
 
@@ -49,24 +51,51 @@ def addResults2Json(sizes, eta, results, activationFunc):
     with open("results.json", "w") as f:
         json.dump(resultsDict, f, indent=4)
 
+def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch):
+    cwdPath = os.getcwd()
+    folderPath = cwdPath + "\\NN_settings\\" + activationFunc + "\\"+ str(sizes) + "\\"+ str(eta) + "\\" + str(epoch)
+    if not os.path.exists(folderPath):
+        os.makedirs(folderPath)
+
+    weightsToSave = {}
+    for layer,layerIndex in zip(weights, range(len(weights))):
+        weightsToSave["Layer "+ str(layerIndex)] = {}
+        for neuron, neuronIndex in zip(layer, range(len(layer))):
+            weightsToSave["Layer "+ str(layerIndex)]["Neuron " + str(neuronIndex)] = neuron.tolist()
+
+    biasesToSave = {}
+    for layer,layerIndex in zip(biases, range(len(biases))):
+        biasesToSave["Layer "+ str(layerIndex)] = {}
+        for neuron, neuronIndex in zip(layer, range(len(layer))):
+            biasesToSave["Layer "+ str(layerIndex)]["Neuron " + str(neuronIndex)] = neuron.tolist()
+
+    with open(folderPath + "\\weights.json", "w") as f:
+        json.dump(weightsToSave, f, indent=4)    
+    
+    with open(folderPath + "\\biases.json", "w") as f:
+        json.dump(biasesToSave, f, indent=4)
+
 def performForLearningRate(eta):
     epochsPerformance = []
     
-    print("Starting to train, eta:", eta)
+    print("START : Starting to train, eta:", eta)
     net = neural_net.NeuralNet(nnSizes, seed=seed, debug=False, activationFunc=activationFunc)
     for epoch in range(numOfEpochs2Calc):
         net.SGD(trainingData, 1, 10, eta)
         performance = net.evaluate(testData)
         if debug:
-            print("Learning rate:", eta, "epoch:", str(epoch+1), "performance:", performance)
+            print("PERFORMANCE : Learning rate:", eta, "epoch:", str(epoch+1), "performance:", performance)
         epochsPerformance.append(performance)
-        print("Learning rate:", eta, "epoch:", str(epoch+1), "finished")
+        addNetworkSettings2Json(net.weights, net.biases, eta, activationFunc, nnSizes, epoch)
+        print("EPOCH : Learning rate:", eta, "epoch:", str(epoch+1), "finished")
 
-    print("Learning rate:", eta, "finished")
+    print("FINISH : Learning rate:", eta, "finished")
 
     return epochsPerformance
 
-def getEtasToCalculate():
+def getEtasToCalculate(ignoreCalculated):
+    if ignoreCalculated:
+        return learningRates
     try:
         calculatedEtasStrings = list(getResultsJson()[str(activationFunc)][str(nnSizes)].keys())
     except KeyError:
@@ -79,7 +108,7 @@ def getEtasToCalculate():
 if __name__=="__main__":
     pool = multiprocessing.Pool(poolSize)
 
-    toCalculate = getEtasToCalculate()
+    toCalculate = getEtasToCalculate(ignoreCalculated)
     print("Learning rates to calculate:", toCalculate)
 
     #test
