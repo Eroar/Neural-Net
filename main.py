@@ -16,11 +16,14 @@ print("loading_done")
 # net.SGD(trainingData, 30, 10, 0.1, test_data=testData)
 
 
-learningRates = [1, 2, 3, 5]#[0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
+# learningRates = [10, 2, 3, 5]#[0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10]#[0.005, 0.006, 0.007, 0.008, 0.0085, 0.009,0.01, 0.03, 0.05, 0.08, 0.09, 0.1, 0.3, 0.5, 0.8, 1.0, 1.5]
+learningRates = [0.00000001, 0.00000005, 0.00000012]#relu
+
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
 activationFunc = "relu" #"relu" or "sigmoid"
 seed = 0
+debug = True
 results = []
 
 def getResultsJson():
@@ -51,6 +54,8 @@ def performForLearningRate(eta):
     for epoch in range(numOfEpochs2Calc):
         net.SGD(trainingData, 1, 10, eta)
         performance = net.evaluate(testData)
+        if debug:
+            print("Learning rate:", eta, "epoch:", str(epoch+1), "performance:", performance)
         epochsPerformance.append(performance)
         print("Learning rate:", eta, "epoch:", str(epoch+1), "finished")
 
@@ -75,7 +80,7 @@ if __name__=="__main__":
     print("Learning rates to calculate:", toCalculate)
 
     #test
-    # performForLearningRate(toCalculate[0])
+    # performForLearningRate(0.0000008)
 
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
 
