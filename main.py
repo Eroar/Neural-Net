@@ -18,7 +18,7 @@ print("loading_done")
 
 
 # learningRates = [0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10] #sigmoid
-learningRates = [1e-07, 1e-08, 1e-09, 1e-10, 1e-11,]#relu
+learningRates = [5e-08, 7e-08, 9e-08, 5e-09, 7e-09, 9e-09, 5e-10, 7e-10]#relu
 # learningRates = list(map(lambda x: x*(10**-18), learningRates))
 
 numOfEpochs2Calc = 30
