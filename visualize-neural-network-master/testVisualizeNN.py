@@ -16,6 +16,7 @@ print("Network structure:\n", network_structure)
 print()
 print("classifier.coefs_:")
 pprint(classifier.coefs_)
+print(type(classifier.coefs_[0]))
 
 # Draw the Neural Network with weights
 network=VisNN.DrawNN(network_structure, classifier.coefs_)

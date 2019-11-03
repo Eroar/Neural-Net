@@ -13,6 +13,15 @@ def sigmoidPrime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
 
+def tanh(z):
+    return numpy.tanh(z)
+
+def tanhPrime(z):
+    print("Tanhprime")
+    print(z)
+    input(1 - numpy.square(z))
+    return 1 - numpy.square(z)
+
 def relu(z):
     return numpy.where(z > 0, z, 0.01*z)
 
@@ -46,6 +55,10 @@ class NeuralNet():
         elif activationFunc=="relu":
             self.activationFunc = relu
             self.activationFuncDerivative = reluPrime
+
+        elif activationFunc=="tanh":
+            self.activationFunc = tanh
+            self.activationFuncDerivative = tanhPrime
 
     def feedforward(self, a):
         """
@@ -83,6 +96,7 @@ class NeuralNet():
         """
         n = len(training_data)
         for epoch_num in range(epochs):
+            
             #shuffle the training data
             random.shuffle(training_data)
             miniBatches = []
@@ -199,4 +213,6 @@ class NeuralNet():
     def cost_derivative(self, output_activations, y):
         """Return the vector of partial derivatives \partial C_x /
         \partial a for the output activations."""
+        #DEBUG
+        # print("COST derivative:", output_activations-y)
         return output_activations-y
