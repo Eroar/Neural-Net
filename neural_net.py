@@ -17,6 +17,9 @@ def tanh(z):
     return numpy.tanh(z)
 
 def tanhPrime(z):
+    print("Tanhprime")
+    print(z)
+    input(1 - numpy.square(z))
     return 1 - numpy.square(z)
 
 def relu(z):
@@ -211,5 +214,5 @@ class NeuralNet():
         """Return the vector of partial derivatives \partial C_x /
         \partial a for the output activations."""
         #DEBUG
-        print("COST derivative:", output_activations-y)
+        # print("COST derivative:", output_activations-y)
         return output_activations-y
