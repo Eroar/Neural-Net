@@ -24,6 +24,7 @@ learningRates = [0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
 activationFunc = "tanh" #"relu" or "sigmoid" or "tanh"
+costFunc = "cross_entropy"
 seed = 0
 poolSize = 1
 debug = True
@@ -79,7 +80,7 @@ def performForLearningRate(eta):
     epochsPerformance = []
     
     print("START : Starting to train, eta:", eta)
-    net = neural_net.NeuralNet(nnSizes, seed=seed, debug=False, activationFunc=activationFunc)
+    net = neural_net.NeuralNet(nnSizes, seed=seed, debug=False, activationFunc=activationFunc, costFunc=costFunc)
     for epoch in range(numOfEpochs2Calc):
         net.SGD(trainingData, 1, 10, eta)
         performance = net.evaluate(testData)

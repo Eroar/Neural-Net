@@ -17,9 +17,6 @@ def tanh(z):
     return numpy.tanh(z)
 
 def tanhPrime(z):
-    print("Tanhprime")
-    print(z)
-    input(1 - numpy.square(z))
     return 1 - numpy.square(z)
 
 def relu(z):
@@ -28,9 +25,25 @@ def relu(z):
 def reluPrime(z):
     return numpy.where(z > 0, 1.0, 0.01)
 
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = numpy.exp(x - numpy.max(x))
+    return e_x / e_x.sum()
+
+def cost_derivative(output_activations, y):
+    """Return the vector of partial derivatives \partial C_x /
+    \partial a for the output activations."""
+    #DEBUG
+    # print("COST derivative:", output_activations-y)
+    return output_activations-y
+
+def cross_entropy(output_activations, y):
+    cost = -(1.0) * numpy.sum(y*numpy.log(output_activations) + (1-y)*numpy.log(1-output_activations))
+    return cost
+
 class NeuralNet():
 
-    def __init__(self, sizes, seed="No seed", debug=False, activationFunc="sigmoid"):
+    def __init__(self, sizes, seed="No seed", debug=False, activationFunc="sigmoid", costFunc=""):
         self.debug = debug
         self.numLayers = len(sizes)
         self.sizes = sizes
@@ -59,6 +72,13 @@ class NeuralNet():
         elif activationFunc=="tanh":
             self.activationFunc = tanh
             self.activationFuncDerivative = tanhPrime
+        
+        if costFunc == "cross_entropy":
+            self.costDerivative = cross_entropy
+            self.useSoftmax = True
+        else:
+            self.costDerivative = cost_derivative
+            self.useSoftmax = False
 
     def feedforward(self, a):
         """
@@ -181,7 +201,9 @@ class NeuralNet():
             activations.append(activation)
 
         # backward pass
-        delta = self.cost_derivative(activations[-1], y) * self.activationFuncDerivative(zs[-1])
+        print("Delta before:", self.costDerivative(softmax(activations[-1]), y))
+        input()
+        delta = self.costDerivative(softmax(activations[-1]), y) * self.activationFuncDerivative(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
 
@@ -210,9 +232,3 @@ class NeuralNet():
                 correctCount += 1
         return correctCount
 
-    def cost_derivative(self, output_activations, y):
-        """Return the vector of partial derivatives \partial C_x /
-        \partial a for the output activations."""
-        #DEBUG
-        # print("COST derivative:", output_activations-y)
-        return output_activations-y
