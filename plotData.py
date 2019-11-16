@@ -26,7 +26,7 @@ if __name__=="__main__":
         
 
     for eta, scores in zip(etas, listOfScores):
-        plt.plot(scores, label=str(eta))
+        plt.plot(scores, label=str(eta), linestyle=(0, (5, 10)))
 
     plt.title("Graph showing the learning performance of NN with different learning rates")
     plt.legend(loc="best")
