@@ -17,7 +17,7 @@ print("loading_done")
 # net.SGD(trainingData, 30, 10, 0.1, test_data=testData)
 
 
-learningRates = [0.01, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10] #sigmoid
+learningRates = [0.001, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10] #sigmoid
 # learningRates = [1e-07, 1e-08, 1e-09, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14]#relu
 # learningRates = list(map(lambda x: x*(10**-18), learningRates))
 

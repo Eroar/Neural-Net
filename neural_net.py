@@ -17,9 +17,6 @@ def tanh(z):
     return numpy.tanh(z)
 
 def tanhPrime(z):
-    print("Tanhprime")
-    print(z)
-    input(1 - numpy.square(z))
     return 1 - numpy.square(z)
 
 def relu(z):
