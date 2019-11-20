@@ -1,6 +1,6 @@
 {
     "miniBatchSize": 10,
-    "seed": 0,
+    "seed": 2534,
     "debug": false,
     "debugWB": false,
     "outputFilename": "sigmoid-[784, 30, 10]-10.json",
@@ -9,5 +9,5 @@
         30,
         10
     ],
-    "numOfEpochs2Calc": 2
+    "numOfEpochs2Calc": 30
 }

@@ -13,4 +13,4 @@ Optional arguments:
 -d : debug
 -dWB : debug weights and biases
 -i : ignore calculated
--o filename: output filename, not recommended to change
+-o filename: output filename, if not provided will be generated based on other parameters, not recommended to change
