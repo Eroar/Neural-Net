@@ -1,0 +1,16 @@
+Arguments instruction:
+Required arguments:
+-f filename : etas filename
+-batchS int : mini batch size
+-sizes sizes : sizes of network separated by coma. For example 784, 30, 10
+-epochs int : number of epochs
+
+Required for research:
+-seed int : seed number
+
+Optional arguments:
+-p int : pool size limit
+-d : debug
+-dWB : debug weights and biases
+-i : ignore calculated
+-o filename: output filename, not recommended to change
