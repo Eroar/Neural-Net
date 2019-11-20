@@ -12,8 +12,12 @@ def getResultsJson():
     return resultsDict
 
 if __name__=="__main__":
+    nnSizes = [784, 30, 10]
+    miniBatchSize = 30
+    activationFunc = "sigmoid"
+
     resultsDict = getResultsJson()
-    learningRatesDicts = resultsDict["sigmoid"]["[784, 30, 10]"]
+    learningRatesDicts = resultsDict[activationFunc][str(nnSizes)][str(miniBatchSize)]
     etas = learningRatesDicts.keys()
 
     listOfScores = list(learningRatesDicts.values())
