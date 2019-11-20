@@ -6,6 +6,7 @@ import numpy
 import json
 import multiprocessing
 import os
+import sys
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -13,13 +14,9 @@ warnings.filterwarnings('ignore')
 trainingData = mnist_loader.loadTrainingData()
 testData = mnist_loader.loadTestData()
 print("loading_done")
-# net = neural_net.NeuralNet([784, 30, 10], seed=0)
-# net.SGD(trainingData, 30, 10, 0.1, test_data=testData)
 
 
 learningRates = [0.001, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 2, 3, 5, 10] #sigmoid
-# learningRates = [1e-07, 1e-08, 1e-09, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14]#relu
-# learningRates = list(map(lambda x: x*(10**-18), learningRates))
 
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
@@ -28,36 +25,35 @@ activationFunc = "sigmoid" #"relu" or "sigmoid" or "tanh"
 costFunc = "" #cross_entropy
 useSoftMax = False
 seed = 0
-fileName = "results_miniBatchSize_50"
 poolSize = None
 debug = True
+debugWB = True #debug weights and biases
 ignoreCalculated = False
 
 results = []
 
-def getResultsJson(fileName):
+def getResultsJson():
     try:
-        with open(fileName + ".json", "r") as f:
+        with open("results.json", "r") as f:
             resultsDict = json.load(f)
-            # print(resultsDict)
     except:
         # print("No Results.json file found, creating a new one")
         resultsDict = {"relu": {}, "tanh":{}, "sigmoid": {}}
     return resultsDict
 
-def addResults2Json(fileName, sizes, eta, results, activationFunc):
-    resultsDict = getResultsJson(fileName)
+def addResults2Json(sizes, eta, results, activationFunc, miniBatchSize):
+    resultsDict = getResultsJson()
     try:
-        resultsDict[str(activationFunc)][str(sizes)][str(eta)] = results
+        resultsDict[str(activationFunc)][str(miniBatchSize)][str(sizes)][str(eta)] = results
     except KeyError:
-        resultsDict[str(activationFunc)][str(sizes)] = {str(eta) : results}
+        resultsDict[str(activationFunc)][str(miniBatchSize)]= {str(sizes): {str(eta) : results}}
     
-    with open(fileName + ".json", "w") as f:
+    with open("results.json", "w") as f:
         json.dump(resultsDict, f, indent=4)
 
-def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch):
+def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch, miniBatchSize):
     cwdPath = os.getcwd()
-    folderPath = cwdPath + "\\NN_settings\\" + activationFunc + "\\"+ str(sizes) + "\\"+ str(eta) + "\\" + str(epoch)
+    folderPath = os.path.join(cwdPath, "NN_settings", activationFunc, str(sizes), str(miniBatchSize), str(eta), str(epoch))
     if not os.path.exists(folderPath):
         os.makedirs(folderPath)
 
@@ -73,10 +69,10 @@ def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch):
         for neuron, neuronIndex in zip(layer, range(len(layer))):
             biasesToSave["Layer "+ str(layerIndex)]["Neuron " + str(neuronIndex)] = neuron.tolist()
 
-    with open(folderPath + "\\weights.json", "w") as f:
+    with open(os.path.join(folderPath, "weights") + ".json", "w") as f:
         json.dump(weightsToSave, f, indent=4)    
     
-    with open(folderPath + "\\biases.json", "w") as f:
+    with open(os.path.join(folderPath, "biases") + ".json", "w") as f:
         json.dump(biasesToSave, f, indent=4)
 
 def performForLearningRate(eta):
@@ -90,7 +86,8 @@ def performForLearningRate(eta):
         if debug:
             print("PERFORMANCE : Learning rate:", eta, "epoch:", str(epoch+1), "performance:", performance)
         epochsPerformance.append(performance)
-        addNetworkSettings2Json(net.weights, net.biases, eta, activationFunc, nnSizes, epoch)
+        if debugWB:
+            addNetworkSettings2Json(net.weights, net.biases, eta, activationFunc, nnSizes, epoch, miniBatchSize)
         print("EPOCH : Learning rate:", eta, "epoch:", str(epoch+1), "finished")
 
     print("FINISH : Learning rate:", eta, "finished")
@@ -101,7 +98,7 @@ def getEtasToCalculate(ignoreCalculated):
     if ignoreCalculated:
         return learningRates
     try:
-        calculatedEtasStrings = list(getResultsJson(fileName)[str(activationFunc)][str(nnSizes)].keys())
+        calculatedEtasStrings = list(getResultsJson()[str(activationFunc)][str(nnSizes)].keys())
     except KeyError:
         calculatedEtasStrings = []
 
@@ -125,4 +122,4 @@ if __name__=="__main__":
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
 
     for i in range(len(toCalculate)):
-        addResults2Json(fileName, nnSizes, toCalculate[i], learningRatesResults[i], activationFunc)
+        addResults2Json(nnSizes, toCalculate[i], learningRatesResults[i], activationFunc, miniBatchSize)
