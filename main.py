@@ -28,36 +28,35 @@ activationFunc = "sigmoid" #"relu" or "sigmoid" or "tanh"
 costFunc = "" #cross_entropy
 useSoftMax = False
 seed = 0
-fileName = "results_miniBatchSize_30"
 poolSize = None
 debug = True
+debugWB = True #debug weights and biases
 ignoreCalculated = False
 
 results = []
 
-def getResultsJson(fileName):
+def getResultsJson():
     try:
-        with open(fileName + ".json", "r") as f:
+        with open("results.json", "r") as f:
             resultsDict = json.load(f)
-            # print(resultsDict)
     except:
         # print("No Results.json file found, creating a new one")
         resultsDict = {"relu": {}, "tanh":{}, "sigmoid": {}}
     return resultsDict
 
-def addResults2Json(fileName, sizes, eta, results, activationFunc):
-    resultsDict = getResultsJson(fileName)
+def addResults2Json(sizes, eta, results, activationFunc, miniBatchSize):
+    resultsDict = getResultsJson()
     try:
-        resultsDict[str(activationFunc)][str(sizes)][str(eta)] = results
+        resultsDict[str(activationFunc)][str(miniBatchSize)][str(sizes)][str(eta)] = results
     except KeyError:
-        resultsDict[str(activationFunc)][str(sizes)] = {str(eta) : results}
+        resultsDict[str(activationFunc)][str(miniBatchSize)]= {str(sizes): {str(eta) : results}}
     
-    with open(fileName + ".json", "w") as f:
+    with open("results.json", "w") as f:
         json.dump(resultsDict, f, indent=4)
 
-def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch):
+def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch, miniBatchSize):
     cwdPath = os.getcwd()
-    folderPath = cwdPath + "\\NN_settings\\" + activationFunc + "\\"+ str(sizes) + "\\"+ str(eta) + "\\" + str(epoch)
+    folderPath = os.path.join(cwdPath, "NN_settings", activationFunc, str(sizes), str(miniBatchSize), str(eta), str(epoch))
     if not os.path.exists(folderPath):
         os.makedirs(folderPath)
 
@@ -73,10 +72,10 @@ def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch):
         for neuron, neuronIndex in zip(layer, range(len(layer))):
             biasesToSave["Layer "+ str(layerIndex)]["Neuron " + str(neuronIndex)] = neuron.tolist()
 
-    with open(folderPath + "\\weights.json", "w") as f:
+    with open(os.path.join(folderPath, "weights") + ".json", "w") as f:
         json.dump(weightsToSave, f, indent=4)    
     
-    with open(folderPath + "\\biases.json", "w") as f:
+    with open(os.path.join(folderPath, "biases") + ".json", "w") as f:
         json.dump(biasesToSave, f, indent=4)
 
 def performForLearningRate(eta):
@@ -90,7 +89,8 @@ def performForLearningRate(eta):
         if debug:
             print("PERFORMANCE : Learning rate:", eta, "epoch:", str(epoch+1), "performance:", performance)
         epochsPerformance.append(performance)
-        addNetworkSettings2Json(net.weights, net.biases, eta, activationFunc, nnSizes, epoch)
+        if debugWB:
+            addNetworkSettings2Json(net.weights, net.biases, eta, activationFunc, nnSizes, epoch, miniBatchSize)
         print("EPOCH : Learning rate:", eta, "epoch:", str(epoch+1), "finished")
 
     print("FINISH : Learning rate:", eta, "finished")
@@ -101,7 +101,7 @@ def getEtasToCalculate(ignoreCalculated):
     if ignoreCalculated:
         return learningRates
     try:
-        calculatedEtasStrings = list(getResultsJson(fileName)[str(activationFunc)][str(nnSizes)].keys())
+        calculatedEtasStrings = list(getResultsJson()[str(activationFunc)][str(nnSizes)].keys())
     except KeyError:
         calculatedEtasStrings = []
 
@@ -125,4 +125,4 @@ if __name__=="__main__":
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
 
     for i in range(len(toCalculate)):
-        addResults2Json(fileName, nnSizes, toCalculate[i], learningRatesResults[i], activationFunc)
+        addResults2Json(nnSizes, toCalculate[i], learningRatesResults[i], activationFunc, miniBatchSize)
