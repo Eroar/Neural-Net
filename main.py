@@ -23,12 +23,12 @@ learningRates = [0.001, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 
 
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
-miniBatchSize = 30
+miniBatchSize = 50
 activationFunc = "sigmoid" #"relu" or "sigmoid" or "tanh"
 costFunc = "" #cross_entropy
 useSoftMax = False
 seed = 0
-fileName = "results_miniBatchSize_30"
+fileName = "results_miniBatchSize_50"
 poolSize = None
 debug = True
 ignoreCalculated = False
