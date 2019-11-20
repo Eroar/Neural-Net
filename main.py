@@ -23,18 +23,21 @@ learningRates = [0.001, 0.05, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.3, 0.5, 1, 
 
 numOfEpochs2Calc = 30
 nnSizes = [784, 30, 10]
-activationFunc = "tanh" #"relu" or "sigmoid" or "tanh"
-costFunc = "cross_entropy"
+miniBatchSize = 30
+activationFunc = "sigmoid" #"relu" or "sigmoid" or "tanh"
+costFunc = "" #cross_entropy
+useSoftMax = False
 seed = 0
-poolSize = 1
+fileName = "results_miniBatchSize_30"
+poolSize = None
 debug = True
 ignoreCalculated = False
 
 results = []
 
-def getResultsJson():
+def getResultsJson(fileName):
     try:
-        with open("results.json", "r") as f:
+        with open(fileName + ".json", "r") as f:
             resultsDict = json.load(f)
             # print(resultsDict)
     except:
@@ -42,14 +45,14 @@ def getResultsJson():
         resultsDict = {"relu": {}, "tanh":{}, "sigmoid": {}}
     return resultsDict
 
-def addResults2Json(sizes, eta, results, activationFunc):
-    resultsDict = getResultsJson()
+def addResults2Json(fileName, sizes, eta, results, activationFunc):
+    resultsDict = getResultsJson(fileName)
     try:
         resultsDict[str(activationFunc)][str(sizes)][str(eta)] = results
     except KeyError:
         resultsDict[str(activationFunc)][str(sizes)] = {str(eta) : results}
     
-    with open("results.json", "w") as f:
+    with open(fileName + ".json", "w") as f:
         json.dump(resultsDict, f, indent=4)
 
 def addNetworkSettings2Json(weights, biases, eta, activationFunc, sizes, epoch):
@@ -80,9 +83,9 @@ def performForLearningRate(eta):
     epochsPerformance = []
     
     print("START : Starting to train, eta:", eta)
-    net = neural_net.NeuralNet(nnSizes, seed=seed, debug=False, activationFunc=activationFunc, costFunc=costFunc)
+    net = neural_net.NeuralNet(nnSizes, seed=seed, debug=False, activationFunc=activationFunc, costFunc=costFunc, useSoftMax=useSoftMax)
     for epoch in range(numOfEpochs2Calc):
-        net.SGD(trainingData, 1, 10, eta)
+        net.SGD(trainingData, 1, mini_batch_size=miniBatchSize, eta=eta)
         performance = net.evaluate(testData)
         if debug:
             print("PERFORMANCE : Learning rate:", eta, "epoch:", str(epoch+1), "performance:", performance)
@@ -98,7 +101,7 @@ def getEtasToCalculate(ignoreCalculated):
     if ignoreCalculated:
         return learningRates
     try:
-        calculatedEtasStrings = list(getResultsJson()[str(activationFunc)][str(nnSizes)].keys())
+        calculatedEtasStrings = list(getResultsJson(fileName)[str(activationFunc)][str(nnSizes)].keys())
     except KeyError:
         calculatedEtasStrings = []
 
@@ -117,10 +120,9 @@ if __name__=="__main__":
     print("Learning rates to compute:", toCalculate)
     print("Number of rates to compute", len(toCalculate))
 
-    #test
-    # performForLearningRate(0.0000008)
-    performForLearningRate(toCalculate[0])
+
+    # performForLearningRate(toCalculate[0])
     learningRatesResults = pool.map(performForLearningRate, toCalculate)
 
     for i in range(len(toCalculate)):
-        addResults2Json(nnSizes, toCalculate[i], learningRatesResults[i], activationFunc)
+        addResults2Json(fileName, nnSizes, toCalculate[i], learningRatesResults[i], activationFunc)

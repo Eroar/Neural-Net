@@ -43,10 +43,11 @@ def cross_entropy(output_activations, y):
 
 class NeuralNet():
 
-    def __init__(self, sizes, seed="No seed", debug=False, activationFunc="sigmoid", costFunc=""):
+    def __init__(self, sizes, seed="No seed", debug=False, activationFunc="sigmoid", costFunc="", useSoftMax=False):
         self.debug = debug
         self.numLayers = len(sizes)
         self.sizes = sizes
+        self.useSoftMax = useSoftMax
         if seed != "No seed":
             if self.debug:
                 print("Setting seed")
@@ -75,10 +76,8 @@ class NeuralNet():
         
         if costFunc == "cross_entropy":
             self.costDerivative = cross_entropy
-            self.useSoftmax = True
         else:
             self.costDerivative = cost_derivative
-            self.useSoftmax = False
 
     def feedforward(self, a):
         """
@@ -201,11 +200,15 @@ class NeuralNet():
             activations.append(activation)
 
         # backward pass
-        print("Delta before:", self.costDerivative(softmax(activations[-1]), y))
-        input()
-        delta = self.costDerivative(softmax(activations[-1]), y) * self.activationFuncDerivative(zs[-1])
+        delta = self.costDerivative(activations[-1], y) * self.activationFuncDerivative(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
+
+        # print("Delta before:", self.costDerivative(softmax(activations[-1]), y))
+        # input()
+        # delta = self.costDerivative(softmax(activations[-1]), y) * self.activationFuncDerivative(zs[-1])
+        # nabla_b[-1] = delta
+        # nabla_w[-1] = numpy.dot(delta, activations[-2].transpose())
 
         # l = 1 means the last layer of neurons, l = 2 is the
         # second-last layer, and so on.
