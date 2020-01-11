@@ -6,8 +6,7 @@ def loadTrainingLabels():
     with gzip.open("MNIST/train-labels-idx1-ubyte.gz", "r") as f: 
         f.read(8)
 
-
-        for i in range(60000):   
+        for i in range(60000):
             buffer = f.read(1)
             label = numpy.frombuffer(buffer, dtype=numpy.uint8).astype(numpy.uint8)
             labels.append(vectorized_result(label))
