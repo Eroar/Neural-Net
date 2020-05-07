@@ -1,4 +1,5 @@
 __pycache__/
 NN_settings/
 .vscode/
+.mypy_cache/
 /tmp

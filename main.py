@@ -26,12 +26,6 @@ outputFilename = ""
 nnSizes = None #required
 numOfEpochs2Calc = 0 #required
 
-#NOT IMPLEMENTED
-##################
-activationFunc = "sigmoid" #"relu" or "sigmoid" or "tanh"
-costFunc = "" #cross_entropy
-useSoftMax = False
-###################
 
 
 def getResultsJson(outputFilename):
